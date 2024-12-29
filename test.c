@@ -1,103 +1,98 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Định nghĩa cấu trúc của một nút trong cây nhị phân
-struct Node
-{
-    int data;
-    struct Node *left;
-    struct Node *right;
-};
+#define MAX 100
 
-// Hàm tạo một nút mới
-struct Node *createNode(int data)
+typedef struct Graph
 {
-    struct Node *newNode = (struct Node *)malloc(sizeof(struct Node));
-    newNode->data = data;
-    newNode->left = NULL;
-    newNode->right = NULL;
-    return newNode;
-}
+    int V;
+    int adj[MAX][MAX];
+} Graph;
 
-// Hàm chèn giá trị vào cây nhị phân tìm kiếm (BST)
-struct Node *insertNode(struct Node *root, int data)
+typedef struct Queue
 {
-    if (root == NULL)
-    {
-        root = createNode(data);
-    }
-    else if (data < root->data)
-    {
-        root->left = insertNode(root->left, data);
-    }
-    else
-    {
-        root->right = insertNode(root->right, data);
-    }
-    return root;
-}
+    int items[MAX];
+    int front, rear;
+} Queue;
 
-// Hàm duyệt cây Tiền Thứ Tự (Pre-order)
-void preOrderTraversal(struct Node *root)
+void initGraph(Graph *g, int vertices)
 {
-    if (root != NULL)
+    g->V = vertices;
+    for (int i = 0; i < vertices; i++)
     {
-        printf("%d ", root->data);
-        preOrderTraversal(root->left);
-        preOrderTraversal(root->right);
+        for (int j = 0; i < vertices; j++)
+        {
+            g->adj[i][j] = 0;
+        }
     }
 }
 
-// Hàm duyệt cây Trung Thứ Tự (In-order)
-void inOrderTraversal(struct Node *root)
+void addEdge(Graph *g, int src, int dest)
 {
-    if (root != NULL)
-    {
-        inOrderTraversal(root->left);
-        printf("%d ", root->data);
-        inOrderTraversal(root->right);
-    }
+    g->adj[src][dest] = 1;
+    g->adj[dest][src] = 1;
 }
 
-// Hàm duyệt cây Hậu Thứ Tự (Post-order)
-void postOrderTraversal(struct Node *root)
+void initQueue(Queue *q)
 {
-    if (root != NULL)
+    q->front = 0;
+    q->rear = -1;
+}
+
+int isEmpty(Queue *q)
+{
+    return q->rear == -1;
+}
+
+int enqueue(Queue *q, int value)
+{
+    if (q->rear == MAX - 1)
     {
-        postOrderTraversal(root->left);
-        postOrderTraversal(root->right);
-        printf("%d ", root->data);
+        return;
+    }
+    q->items[++(q->rear)] = value;
+}
+
+int dequeue(Queue *q)
+{
+    if (isEmpty(q))
+    {
+        return -1;
+    }
+    return q->items[(q->front)++];
+}
+
+void BFS(Graph *g, int start)
+{
+    int visited[MAX] = {0};
+    Queue q;
+    initQueue(&q);
+    visited[start] = 1;
+    enqueue(&q, start);
+    while (!isEmpty(&q))
+    {
+        int current = dequeue(&q);
+        printf("%d", current);
+        for (int i = 0; i < g->V; i++)
+        {
+            if (g->adj[current][i] == 1 && !visited[i])
+            {
+                visited[i] = 1;
+                enqueue(&q, i);
+            }
+        }
     }
 }
 
 int main()
 {
-    struct Node *root = NULL;
-    int n, value;
-
-    // Nhập số lượng nút và các giá trị của chúng
-    printf("Nhap so luong nut trong cay: ");
-    scanf("%d", &n);
-
-    printf("Nhap gia tri cac nut:\n");
-    for (int i = 0; i < n; i++)
-    {
-        scanf("%d", &value);
-        root = insertNode(root, value);
-    }
-
-    // In kết quả các kiểu duyệt cây
-    printf("Duyet Tien Thu Tu: \n");
-    preOrderTraversal(root);
-    printf("\n");
-
-    printf("Duyet Trung Thu Tu: \n");
-    inOrderTraversal(root);
-    printf("\n");
-
-    printf("Duyet Hau Thu Tu: \n");
-    postOrderTraversal(root);
-    printf("\n");
-
+    Graph g;
+    int vertices = 5;
+    initGraph(&g, vertices);
+    addEdge(&g, 0, 1);
+    addEdge(&g, 0, 4);
+    addEdge(&g, 1, 2);
+    addEdge(&g, 1, 3);
+    BFS(&g, 0);
     return 0;
 }
